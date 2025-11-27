@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 XAUUSD Signal Bot - LIVE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c1e 0%, #1a1a2e 100%);
+            color: #e6eef8;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(15, 23, 32, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 25px; 
+        }
+        .header h1 {
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        .status-item { text-align: center; }
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        .status-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            background: rgba(7, 16, 26, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #e6eef8;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #e6eef8;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+        }
+        .timeframe-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .timeframe-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            border: 2px solid #334155;
+            background: #0f172a;
+            color: #e6eef8;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .timeframe-btn.active {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #0c0c1e;
+            border-color: #ffd700;
+        }
+        .control-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 140px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #64748b, #475569);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .log-container {
+            background: #061018;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #334155;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .log-entry {
+            padding: 10px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .log-entry.buy { color: #4ade80; font-weight: bold; }
+        .log-entry.sell { color: #f87171; font-weight: bold; }
+        .log-entry.success { color: #4ade80; }
+        .log-entry.error { color: #f59e0b; }
+        .log-entry.info { color: #60a5fa; }
+        .signal-card {
+            background: rgba(74, 222, 128, 0.1) !important;
+            border-left: 4px solid #4ade80;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .signal-card.sell {
+            background: rgba(248, 113, 113, 0.1) !important;
+            border-left-color: #f87171;
+        }
+        .quick-setup {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #4ade80;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .quick-setup pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 15px; margin: 10px; }
+            .header h1 { font-size: 1.8rem; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 XAUUSD Signal Bot</h1>
+            <p><strong>LIVE</strong> Engulfing & Pin Bar • Entry + TP/SL • 15m 1h 4h</p>
+        </div>
+
+        <div class="quick-setup">
+            <h3>⚡ QUICK SETUP - Copy & Paste in Console (F12)</h3>
+            <pre id="quickCode">localStorage.setItem('API_KEY', 'your_twelvedata_key');
+localStorage.setItem('TG_TOKEN', 'your_telegram_token');
+localStorage.setItem('CHAT_ID', 'your_chat_id');</pre>
+            <p><small>1. Press F12 → Console → Paste → Enter → 2. Click "Load Keys"</small></p>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <div class="status-value" id="statusRunning">🔴 STOPPED</div>
+                <div class="status-label">Status</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="totalSignals">0</div>
+                <div class="status-label">Signals</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="buySignals">0</div>
+                <div class="status-label">BUY</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="sellSignals">0</div>
+                <div class="status-label">SELL</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="currentPrice">$0.00</div>
+                <div class="status-label">Price</div>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>🔑 TwelveData API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter API Key">
+                <small>Get FREE: <a href="https://twelvedata.com" target="_blank">twelvedata.com</a></small>
+            </div>
+            <div class="form-group">
+                <label>📱 Telegram Bot Token</label>
+                <input type="password" id="tgToken" placeholder="123456:ABC...">
+                <small>Create: @BotFather</small>
+            </div>
+            <div class="form-group">
+                <label>💬 Telegram Chat ID</label>
+                <input type="text" id="chatId" placeholder="123456789">
+                <small>Get: @userinfobot</small>
+            </div>
+            <div class="form-group">
+                <label>⏱️ Check Interval</label>
+                <input type="number" id="interval" value="60" min="30" max="300">
+                <small>Seconds</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>📊 Timeframes</label>
+            <div class="timeframe-selector">
+                <button class="timeframe-btn active" data-tf="15min">15M</button>
+                <button class="timeframe-btn active" data-tf="1h">1H</button>
+                <button class="timeframe-btn active" data-tf="4h">4H</button>
+            </div>
+        </div>
+
+        <div class="control-buttons">
+            <button class="btn-primary" id="loadKeys">🔑 Load Keys</button>
+            <button class="btn-primary" id="testBtn">🧪 Test API</button>
+            <button class="btn-primary" id="startBtn">▶️ START BOT</button>
+            <button class="btn-secondary" id="stopBtn" disabled>⏹️ STOP</button>
+            <button class="btn-danger" id="clearBtn">🗑️ Clear</button>
+            <button class="btn-secondary" id="exportBtn">📊 Export Data</button>
+        </div>
+
+        <div class="log-container" id="logs">
+            <div class="log-entry success">🚀 XAUUSD Signal Bot LOADED SUCCESSFULLY!</div>
+            <div class="log-entry success">✅ Ready for Engulfing + Pin Bar Detection</div>
+            <div class="log-entry info">💡 Enter API Key → Test API → Start Bot</div>
+        </div>
+    </div>
+
+    <script>
+        class SignalBot {
+            constructor() {
+                this.isRunning = false;
+                this.totalSignals = 0;
+                this.buySignals = 0;
+                this.sellSignals = 0;
+                this.timeframes = ['15min', '1h', '4h'];
+                this.lastSignals = new Map();
+                this.signalHistory = [];
+                this.signalInterval = null;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadKeys();
+                this.updateStatus();
+                this.log('🤖 Signal Bot Initialized! All Functions Ready', 'success');
+            }
+
+            bindEvents() {
+                document.getElementById('loadKeys').onclick = () => this.loadKeys();
+                document.getElementById('testBtn').onclick = () => this.testAPI();
+                document.getElementById('startBtn').onclick = () => this.start();
+                document.getElementById('stopBtn').onclick = () => this.stop();
+                document.getElementById('clearBtn').onclick = () => this.clearLog();
+                document.getElementById('exportBtn').onclick = () => this.exportData();
+
+                document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.target.classList.toggle('active');
+                        const tf = e.target.dataset.tf;
+                        const index = this.timeframes.indexOf(tf);
+                        if (index > -1) this.timeframes.splice(index, 1);
+                        else this.timeframes.push(tf);
+                        this.log(`📊 Timeframes: ${this.timeframes.join(', ')}`, 'info');
+                    };
+                });
+
+                document.getElementById('apiKey').onblur = () => {
+                    if (document.getElementById('apiKey').value) 
+                        localStorage.setItem('API_KEY', document.getElementById('apiKey').value);
+                };
+                document.getElementById('tgToken').onblur = () => {
+                    if (document.getElementById('tgToken').value) 
+                        localStorage.setItem('TG_TOKEN', document.getElementById('tgToken').value);
+                };
+                document.getElementById('chatId').onblur = () => {
+                    if (document.getElementById('chatId').value) 
+                        localStorage.setItem('CHAT_ID', document.getElementById('chatId').value);
+                };
+            }
+
+            loadKeys() {
+                const api = localStorage.getItem('API_KEY');
+                const tg = localStorage.getItem('TG_TOKEN');
+                const chat = localStorage.getItem('CHAT_ID');
+                
+                if (api) {
+                    document.getElementById('apiKey').value = api;
+                    this.log('✅ API Key loaded from localStorage!', 'success');
+                }
+                if (tg) {
+                    document.getElementById('tgToken').value = tg;
+                    this.log('✅ Telegram Token loaded!', 'success');
+                }
+                if (chat) {
+                    document.getElementById('chatId').value = chat;
+                    this.log('✅ Chat ID loaded!', 'success');
+                }
+            }
+
+            async testAPI() {
+                const apiKey = document.getElementById('apiKey').value.trim();
+                if (!apiKey) {
+                    alert('❌ Enter API Key first!');
+                    this.log('❌ No API Key found!', 'error');
+                    return false;
+                }
+
+                try {
+                    this.log('🧪 Testing TwelveData API...', 'info');
+                    const data = await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=15min&outputsize=1&apikey=${apiKey}`);
+                    const result = await data.json();
+                    
+                    if (result.values && result.values.length > 0) {
+                        const price = parseFloat(result.values[0].close);
+                        document.getElementById('currentPrice').textContent = `$${price.toFixed(2)}`;
+                        this.log(`✅ API OK! Current XAUUSD: $${price.toFixed(2)}`, 'success');
+                        alert(`✅ API WORKING!
+Current Price: $${price.toFixed(2)}
+Ready to start bot!`);
+                        return true;
+                    } else {
+                        throw new Error('No data received');
+                    }
+                } catch (error) {
+                    this.log(`❌ API Error: ${error.message}`, 'error');
+                    alert('❌ API Error! Check your key or internet connection.');
+                    return false;
+                }
+            }
+
+            isEngulfing(prev, curr) {
+                if (prev.close < prev.open && curr.close > curr.open && 
+                    curr.open <= prev.close && curr.close >= prev.open) {
+                    return 'BUY';
+                }
+                if (prev.close > prev.open && curr.close < curr.open && 
+                    curr.open >= prev.close && curr.close <= prev.open) {
+                    return 'SELL';
+                }
+                return null;
+            }
+
+            isPinBar(candle) {
+                const body = Math.abs(candle.close - candle.open);
+                const range = candle.high - candle.low;
+                if (range < 0.1 || body / range > 0.35) return null;
+
+                const upper = candle.high - Math.max(candle.open, candle.close);
+                const lower = Math.min(candle.open, candle.close) - candle.low;
+
+                if (lower >= range * 0.6 && body <= range * 0.35) return 'BUY';
+                if (upper >= range * 0.6 && body <= range * 0.35) return 'SELL';
+                return null;
+            }
+
+            calculateLevels(signal, price, tf) {
+                let tp, sl;
+                const tfMap = { '15min': 0.8, '1h': 1.5, '4h': 2.5 };
+                const dist = tfMap[tf] || 1.2;
+                
+                if (signal === 'BUY') {
+                    tp = price + dist;
+                    sl = price - (dist / 2);
+                } else {
+                    tp = price - dist;
+                    sl = price + (dist / 2);
+                }
+                return { tp: tp.toFixed(2), sl: sl.toFixed(2), rr: '1:2.0' };
+            }
+
+            async checkSignals() {
+                if (!this.isRunning) return;
+                
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const tgToken = document.getElementById('tgToken').value.trim();
+                const chatId = document.getElementById('chatId').value.trim();
+
+                if (!apiKey) {
+                    this.log('❌ API Key missing!', 'error');
+                    return;
+                }
+
+                this.log(`🔍 Scanning ${this.timeframes.length} timeframes...`, 'info');
+
+                for (const tf of this.timeframes) {
+                    try {
+                        const data = await fetch(
+                            `https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=3&apikey=${apiKey}`
+                        );
+                        const result = await data.json();
+                        
+                        if (!result.values || result.values.length < 2) {
+                            this.log(`⚠️ ${tf}: Not enough data`, 'error');
+                            continue;
+                        }
+
+                        const candles = result.values.slice(0, 2).reverse();
+                        const prev = candles[0];
+                        const curr = candles[1];
+
+                        const key = `${tf}-${Math.floor(new Date(curr.datetime).getTime() / 300000)}`;
+                        if (this.lastSignals.has(key)) continue;
+
+                        let signal = this.isEngulfing(prev, curr);
+                        if (!signal) signal = this.isPinBar(curr);
+
+                        if (signal) {
+                            this.lastSignals.set(key, Date.now());
+                            const levels = this.calculateLevels(signal, parseFloat(curr.close), tf);
+                            this.signalHistory.push({
+                                timestamp: new Date().toISOString(),
+                                timeframe: tf,
+                                signal: signal,
+                                entry: curr.close,
+                                tp: levels.tp,
+                                sl: levels.sl,
+                                rr: levels.rr
+                            });
+                            
+                            const signalCard = document.createElement('div');
+                            signalCard.className = `log-entry ${signal.toLowerCase()} signal-card`;
+                            signalCard.innerHTML = `
+                                <strong>🚨 ${signal} SIGNAL (${tf.toUpperCase()})</strong><br>
+                                💰 ENTRY: ${curr.close}<br>
+                                🎯 TP: ${levels.tp} | 🛑 SL: ${levels.sl}<br>
+                                ⚖️ R:R ${levels.rr}
+                            `;
+                            document.getElementById('logs').insertBefore(signalCard, document.getElementById('logs').firstChild);
+
+                            this.totalSignals++;
+                            if (signal === 'BUY') this.buySignals++;
+                            else this.sellSignals++;
+                            this.updateStatus();
+
+                            this.log(`${signal} @ ${curr.close} (${tf}) - TP:${levels.tp} SL:${levels.sl}`, signal.toLowerCase());
+
+                            if (tgToken && chatId) {
+                                await this.sendTelegram(signal, curr.close, levels, tf);
+                            }
+                        }
+                    } catch (e) {
+                        this.log(`❌ ${tf}: ${e.message}`, 'error');
+                    }
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+
+            async sendTelegram(signal, entry, levels, tf) {
+                const tgToken = document.getElementById('tgToken').value.trim();
+                const chatId = document.getElementById('chatId').value.trim();
+                
+                const message = `🚨 XAUUSD ${signal} SIGNAL
+
+📊 Timeframe: ${tf.toUpperCase()}
+💰 Entry: ${entry}
+🎯 TP: ${levels.tp}
+🛑 SL: ${levels.sl}
+⚖️ R:R: ${levels.rr}
+
+#XAUUSD #${signal}`;
+
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message,
+                            parse_mode: 'HTML',
+                            disable_web_page_preview: true
+                        })
+                    });
+                    if (response.ok) {
+                        this.log('📱 Telegram Message SENT!', 'success');
+                    }
+                } catch (e) {
+                    this.log('❌ Telegram Error: ' + e.message, 'error');
+                }
+            }
+
+            async start() {
+                const testOk = await this.testAPI();
+                if (!testOk) {
+                    alert('❌ Test API first!');
+                    return;
+                }
+
+                this.isRunning = true;
+                this.updateStatus();
+
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('testBtn').disabled = true;
+
+                this.log('🚀 BOT STARTED! LIVE SIGNAL SCANNING...', 'success');
+                await this.checkSignals();
+
+                const interval = parseInt(document.getElementById('interval').value) * 1000;
+                this.signalInterval = setInterval(() => this.checkSignals(), interval);
+            }
+
+            stop() {
+                this.isRunning = false;
+
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('testBtn').disabled = false;
+                
+                if (this.signalInterval) {
+                    clearInterval(this.signalInterval);
+                    this.signalInterval = null;
+                }
+
+                this.updateStatus();
+                this.log('⏹️ Bot STOPPED safely', 'info');
+            }
+
+            updateStatus() {
+                const statusEl = document.getElementById('statusRunning');
+                if (this.isRunning) {
+                    statusEl.textContent = '🟢 LIVE';
+                    statusEl.style.color = '#4ade80';
+                } else {
+                    statusEl.textContent = '🔴 STOPPED';
+                    statusEl.style.color = '#ef4444';
+                }
+                document.getElementById('totalSignals').textContent = this.totalSignals;
+                document.getElementById('buySignals').textContent = this.buySignals;
+                document.getElementById('sellSignals').textContent = this.sellSignals;
+            }
+
+            log(msg, type = 'info') {
+                const logs = document.getElementById('logs');
+                const div = document.createElement('div');
+                div.className = `log-entry ${type}`;
+                div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                logs.insertBefore(div, logs.firstChild);
+                
+                if (logs.children.length > 100) {
+                    logs.removeChild(logs.lastChild);
+                }
+                logs.scrollTop = 0;
+            }
+
+            clearLog() {
+                document.getElementById('logs').innerHTML = 
+                    '<div class="log-entry success">🧹 Log cleared! Ready for new signals.</div>';
+                this.log('📋 Log cleared successfully', 'success');
+            }
+
+            exportData() {
+                if (this.signalHistory.length === 0) {
+                    alert('❌ No signals to export!');
+                    return;
+                }
+                
+                const data = this.signalHistory.map(s => ({
+                    Time: new Date(s.timestamp).toLocaleString(),
+                    Timeframe: s.timeframe,
+                    Signal: s.signal,
+                    Entry: s.entry,
+                    TP: s.tp,
+                    SL: s.sl,
+                    'R:R': s.rr
+                }));
+                
+                const csv = 'Signal History
+
+' + 
+                    Object.keys(data[0]).join(',') + '
+' + 
+                    data.map(row => Object.values(row).join(',')).join('
+');
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `XAUUSD_Signals_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                this.log(`📊 Exported ${this.signalHistory.length} signals!`, 'success');
+            }
+        }
+
+        let bot;
+        document.addEventListener('DOMContentLoaded', () => {
+            bot = new SignalBot();
+            document.getElementById('quickCode').textContent = 
+`localStorage.setItem('API_KEY', 'YOUR_TWELVEDATA_KEY');
+localStorage.setItem('TG_TOKEN', 'YOUR_TELEGRAM_TOKEN');
+localStorage.setItem('CHAT_ID', 'YOUR_CHAT_ID');`;
+        });
+    </script>
+</body>
+</html>
